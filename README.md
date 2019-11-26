@@ -16,6 +16,20 @@ iv)Place the json, XML, Error codes on output file inside /src/test/resources/ex
 
 v)Run the unit test flow.
 
+## Additional maven dependencies
+`<repository>
+    <id>central</id>
+    <name>artifactory.codecentric.de-releases</name>
+    <url>https://artifactory.codecentric.de/artifactory/public</url>
+</repository>
+
+<dependency>
+    <groupId>de.codecentric.mule.modules</groupId>
+    <artifactId>assert-object-equals-module</artifactId>
+    <version>1.1.0</version>
+    <classifier>mule-plugin</classifier>
+</dependency>`
+
 
 
 
