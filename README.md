@@ -28,7 +28,7 @@ v)Run the unit test flow.
     <artifactId>assert-object-equals-module</artifactId>
     <version>1.1.0</version>
     <classifier>mule-plugin</classifier>
-</dependency>`
+</dependency> `
 
 
 
