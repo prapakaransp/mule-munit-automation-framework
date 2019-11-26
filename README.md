@@ -17,6 +17,7 @@ iv)Place the json, XML, Error codes on output file inside /src/test/resources/ex
 v)Run the unit test flow.
 
 ## Additional maven dependencies
+```xml
 <repository>
     <id>central</id>
     <name>artifactory.codecentric.de-releases</name>
@@ -29,6 +30,7 @@ v)Run the unit test flow.
     <version>1.1.0</version>
     <classifier>mule-plugin</classifier>
 </dependency>
+```
 
 
 
