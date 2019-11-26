@@ -1,0 +1,12 @@
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">>
+
+<xsd:element name="MASTER_RCPT_COMPLETE_OUB_IFD">
+   <xsd:complexType>
+      <xsd:sequence maxOccurs="unbounded">
+        <xsd:element minOccurs="1" name="EXPQTY" type="xsd:string"/>
+  	    <xsd:element minOccurs="1" name="RCVQTY" type="xsd:string"/>
+      </xsd:sequence>
+  </xsd:complexType>
+ </xsd:element>
+</xsd:schema>

@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="input" format="xml">
+      <types:shape format="xml-schema" element="MASTER_RCPT_COMPLETE_OUB_IFD" location="schema/UC_MSTR_RCPT_COMPLETE_OUB_IFD__2010.2.xsd"/>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#71b393dc-a31a-4478-bae3-9c4688f7a0d2">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="input"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

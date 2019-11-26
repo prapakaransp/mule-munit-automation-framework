@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ibm-mq="http://www.mulesoft.org/schema/mule/ibm-mq" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xml-module="http://www.mulesoft.org/schema/mule/xml-module"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/xml-module http://www.mulesoft.org/schema/mule/xml-module/current/mule-xml-module.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ibm-mq http://www.mulesoft.org/schema/mule/ibm-mq/current/mule-ibm-mq.xsd">
+	<xml-module:config name="XML_Config" doc:name="XML Config" doc:id="598bcb46-c299-4d5d-bcb9-bbfde46f10e1" />
+	<flow name="testmunitautomationFlow" doc:id="154666cb-9eec-4c0c-95ad-6c906461552c" >
+		<logger level="INFO" doc:name="Logger" doc:id="33dd38d8-ab91-4faf-8418-fcf1c7401777" message='"The main flow get started"'/>
+		<xml-module:validate-schema doc:name="Validate schema" doc:id="dde6f5c5-09ad-47c5-b5ab-99463fb1a087" schemas="schema/order_status.xsd" />
+		<ee:transform doc:name="Transform Message" doc:id="71b393dc-a31a-4478-bae3-9c4688f7a0d2">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+ if ((payload.MASTER_RCPT_COMPLETE_OUB_IFD.EXPQTY as Number) >  (payload.MASTER_RCPT_COMPLETE_OUB_IFD.RCVQTY as Number)) 
+ { "poShotCode" : (payload.MASTER_RCPT_COMPLETE_OUB_IFD.EXPQTY as Number) - (payload.MASTER_RCPT_COMPLETE_OUB_IFD.RCVQTY as Number)}
+     
+else 
+
+{ "poOverCode" : (payload.MASTER_RCPT_COMPLETE_OUB_IFD.RCVQTY as Number) - (payload.MASTER_RCPT_COMPLETE_OUB_IFD.EXPQTY as Number) }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="f9f1bc96-8db3-4000-8583-3798ae6d7ea3" message="#[payload]"/>
+		<ibm-mq:publish doc:name="Publish" doc:id="7bbcb5aa-ea64-48cb-83b2-d1c05b67fcb1" config-ref="IBM_MQ_Config" destination="${queueName}"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="8411d6fc-17a7-40c7-b491-dd2908c580b2" type="ANY">
+				<flow-ref doc:name="Flow Reference" doc:id="5313082b-8290-497b-8760-a3eb48634428" name="xmlSchemaErrorHandlingFlow" />
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

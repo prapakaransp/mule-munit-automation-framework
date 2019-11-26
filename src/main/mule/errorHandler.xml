@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" 
+	  xmlns="http://www.mulesoft.org/schema/mule/core"
+	  xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	  xmlns:ibm-mq="http://www.mulesoft.org/schema/mule/ibm-mq" 
+	  xmlns:module-logger="http://www.mulesoft.org/schema/mule/module-logger"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	  					http://www.mulesoft.org/schema/mule/ibm-mq http://www.mulesoft.org/schema/mule/ibm-mq/current/mule-ibm-mq.xsd
+	  					http://www.mulesoft.org/schema/mule/module-logger http://www.mulesoft.org/schema/mule/module-logger/current/mule-module-logger.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+	<ibm-mq:config name="IBM_MQ_Config" doc:name="IBM MQ Config" doc:id="65b5bfff-1317-4b1d-81ce-6e81384b8a5f" >
+		<ibm-mq:connection username="test" password="test">
+			<ibm-mq:connection-mode >
+				<ibm-mq:binding queueManager="test"/>
+			</ibm-mq:connection-mode>
+		</ibm-mq:connection>
+	</ibm-mq:config>
+	<flow name="xmlSchemaErrorHandlingFlow" doc:id="74b45cd0-8584-451b-afa5-0f044c172531" >
+		<set-variable value="5002" doc:name="xml_validation_error_code" doc:id="09bfa6d2-29b1-4469-a0df-7a73386bed16" variableName="error_code"/>
+		<set-variable value="#['Input XML Schema Validation failed for the INVENTORY_STATUS_CHANGE_IFD.']" doc:name="error_desc" doc:id="ffcd36f0-772d-40ee-ba46-cc1223c602db" variableName="Error_desc" />
+		<ibm-mq:publish doc:name="Publish" doc:id="fd9e4877-4a3e-4feb-8d99-4ab398a1502d" config-ref="IBM_MQ_Config" destination="test"/>
+	</flow>
+	
+</mule>

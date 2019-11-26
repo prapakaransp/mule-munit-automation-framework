@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:module-logger="http://www.mulesoft.org/schema/mule/module-logger"
+	xmlns:assertobjectequals="http://www.mulesoft.org/schema/mule/assertobjectequals" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/assertobjectequals http://www.mulesoft.org/schema/mule/assertobjectequals/current/mule-assertobjectequals.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="testmunitautomation-test-suite.xml" />
+	<file:config name="File_input" doc:name="File Config" doc:id="96d2e29c-c535-4095-9e6e-38b0bdcdb80f" >
+		<file:connection workingDir="#[p('app.home') ++ &quot;/examples/input&quot;]" />
+	</file:config>
+	<file:config name="File_output" doc:name="File Config" doc:id="9772453a-7348-4f83-a011-509b557e5fbb" >
+		<file:connection workingDir="#[p('app.home') ++ &quot;/examples/output&quot;]" />
+	</file:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="9a1db068-a480-4c58-b240-440b3223f9b4" file="properties/config.yaml" />
+	<sub-flow name="configure-testingSub_Flow" doc:id="b59ff835-45e3-4e00-bbf8-4cf1c58df63c" >
+		<flow-ref doc:name="testmunitautomationFlow" doc:id="0495bc66-4f03-4323-a160-c244ccb30758" name="testmunitautomationFlow"/>
+	</sub-flow>
+	<sub-flow name="testmunitautomation-test-suiteSub_Flow" doc:id="acc405f5-595d-47d3-bba7-94c4329f82d9" >
+		<file:list doc:name="List" doc:id="9662a329-07e4-47c8-97b9-4a4855f0a373" config-ref="File_input" directoryPath="./"/>
+		<foreach doc:name="For Each" doc:id="d27d78e9-4efb-49e8-b5b5-62a11f8e0c08">
+			<logger level="INFO" doc:name="Logger" doc:id="75976c1e-f5b0-468e-9cf9-eeb34abfe386" message="#['Input data fetched from examples/input folder ::' ++ attributes.fileName]" />
+			<ee:transform doc:name="Transform Message" doc:id="0658873c-447d-424e-b5c7-8118c361baa3" >
+				<ee:variables >
+					<ee:set-variable variableName="inputFileName" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.fileName]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="findOutputFile" doc:id="3b4ac69a-d051-468d-8acc-02f8efc6f7e0" name="findOutputFile" target="outputFileName"/>
+			<flow-ref doc:name="testmunitautomationFlow" doc:id="e9016bc2-922c-4d21-828a-3d3cb9602cb5" name="configure-testingSub_Flow"/>
+			<logger level="INFO" doc:name="Input output files" doc:id="002505b8-6dd3-449b-8b87-67aae53c9d44" message="#['\n\n *****Testing Scenario' ++ vars.counter ++ 'started*****: \n Input file name: ' ++ vars.inputFileName ++ '\n Output file name: ' ++ vars.outputFileName ++ &quot;\n\n&quot;]"/>
+			<choice doc:name="Choice" doc:id="0aeecbe7-46b6-4447-a0a5-15b9c0299f93" >
+				<when expression='#[(vars.outputFileName as String endsWith ".xml") == true]'>
+					<assertobjectequals:compare-xml doc:name="Compare xml" doc:id="8a96a386-aa74-432f-8bf0-57b706d291e1" expected="#[MunitTools::getResourceAsString('examples/output/' ++ vars.outputFileName)]" actual="#[payload]" xmlCompareOption="NORMALIZE_WHITESPACE" />
+				</when>
+				<when expression='#[(vars.outputFileName as String endsWith ".json") == true]' >
+					<assertobjectequals:compare-objects doc:name="Compare objects" doc:id="46ae307c-6890-4c86-84d2-97d389346361" expected="#[MunitTools::getResourceAsString('examples/output/' ++ vars.outputFileName)]" actual="#[payload]">
+				     <assertobjectequals:path-options />
+			     </assertobjectequals:compare-objects>
+				</when>
+				<when expression='#[(vars.outputFileName as String endsWith ".txt") == true]'>
+					<try doc:name="Try" doc:id="2c57d13d-53e7-43ee-8492-87009cdc2bd9" >
+						<assertobjectequals:compare-objects doc:name="compare_error_code" doc:id="275bff1f-fd00-4439-8408-4b4a8dbc8fcc" expected="#[MunitTools::getResourceAsString('examples/output/' ++ vars.outputFileName)]" actual="#[vars.error_code]">
+						<assertobjectequals:path-options />
+					</assertobjectequals:compare-objects>
+						<set-variable value='#[""]' doc:name="Set Variable" doc:id="6849eb49-f139-4add-8da1-cf42c4a4ba63" variableName="error_code" />
+						<error-handler >
+							<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="4b1e9bfa-4248-4ece-bcda-e8971a74a5a4" type="ANY">
+								<logger level="INFO" doc:name="Logger" doc:id="6afc12be-c1a8-4e73-a1aa-f2213c0ab0c9" message="#['Validate the input scenario Input File name :' ++ vars.inputFileName]" />
+							</on-error-propagate>
+						</error-handler>
+					</try>
+				</when>
+			    <otherwise >
+					<logger level="INFO" doc:name="Logger" doc:id="d43ed903-4895-4269-8bfa-cf9eb2cf9e0e" message="#['Validate the input scenario. Input File name' ++ vars.inputFileName]" />
+					<raise-error doc:name="Raise error" doc:id="71d1a1cd-2836-49ac-8c0d-a20574e9e297" type="EXP:UNKNOWN" description="unit test failed." />
+				</otherwise>
+			</choice>
+		</foreach>
+		<set-variable value="#['yes']" doc:name="successMessage" doc:id="0a0d666e-73b0-49a6-80f2-b270f605d5f8" variableName="successMessage"/>
+	</sub-flow>
+	<sub-flow name="findOutputFile" doc:id="7889c4fc-47d9-4e5a-b0d7-bbb634d0263c" >
+		<set-payload value='#[""]' doc:name="Set_empty_Payload" doc:id="2df9583b-89d3-48a0-a1f1-68b082df3dc0" />
+		<ee:transform doc:name="findOutputfileNamePattern" doc:id="b1740ac4-3324-4ab9-946f-ee93bec5bffb">
+			<ee:variables>
+				<ee:set-variable variableName="outputfileNamePattern"><![CDATA[%dw 2.0
+output application/java
+---
+vars.inputFileName as String replace /(\.[a-z]*)/ with(".")]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<file:list doc:name="List" doc:id="6e317c27-1d24-409b-922b-410bfabaf532" config-ref="File_output" directoryPath="./">
+			<file:matcher filenamePattern="#[vars.outputfileNamePattern ++ '{xml,json,txt}']"/>
+		</file:list>
+		<choice doc:name="Choice" doc:id="4e514274-902a-4995-8088-c0ef92f02b8e" >
+			<when expression="#[payload.attributes == null]">
+				<set-payload value='#[""]' doc:name="outputFileName" doc:id="2d31a55e-058f-4983-b897-c520b45915e4" />
+			</when>
+			<otherwise >
+				<set-payload value="#[payload.attributes.fileName[0]]" doc:name="outputFileName" doc:id="800194b5-1900-4ce4-914f-706edaf3ea6f" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="9b67a06d-a426-4b7c-a90e-e9ca5e8450e5" message="#['Output file name :' ++ payload]"/>
+<!--  		<choice doc:name="Choice" doc:id="a29f2d78-a793-4b00-98b3-63a753f3c5f5" >
+			<when expression="#[isEmpty(payload) == 'true']">
+				<ee:transform doc:name="Transform Message" doc:id="1af172dd-8144-4963-ab5d-d10a5aa57fce" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+
+vars.inputFileName as String replace "xml" with("json") ]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="0e6f4f96-5ade-4eb9-ad2f-32c2004e451a" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+
+vars.inputFileName]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="1fad022a-01ee-4238-b4ef-fa9c72873f6f" message="#['Destination File name: ' ++ (payload as String)]"/> -->
+	</sub-flow>
+	
+	<munit:test name="testmunitautomation-test-suiteTest" description="MUnit Test" doc:id="3a610c69-e062-437f-b647-cd0c4712a8fd" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="bd97bfd7-515e-44e5-ae14-9aca7fbdf6ab" processor="ibm-mq:publish"/>
+		</munit:behavior>
+		<munit:execution>
+			<flow-ref doc:name="testmunitautomation-test-suiteSub_Flow" doc:id="f83cffab-d9b2-4bf2-947e-886af55f1415" name="testmunitautomation-test-suiteSub_Flow"/>
+		</munit:execution>
+		<munit:validation >
+			<logger level="INFO" doc:name="Logger" doc:id="48d9bfbc-aea1-4286-bb6b-0cc9eee89b27" message="#['Test automation completed']"/>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="2e374ea7-c69a-4ffe-9cac-2c3eb88b5457" expression="#[vars.successMessage]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<!-- <munit:test name="testmunitautomation-test-suite-testmunitautomationFlowTest" description="Test" doc:id="a653ef10-e1cc-46a4-b98f-920d70e50b5f" >
+		<munit:execution >
+			<set-payload value="#[MunitTools::getResourceAsString('examples/Inventory_Status_IFD.xml')]" doc:name="set_payload" doc:id="c6002d0c-9550-4824-ae74-8b27e10aea29" mimeType="application/xml" />
+			<flow-ref doc:name="Flow-ref to testmunitautomationFlow" doc:id="25dd64f9-025f-4f60-912c-de9b56859e77" name="testmunitautomationFlow"/>
+		</munit:execution>
+		<munit:validation>
+			<assertobjectequals:compare-xml xmlCompareOption="NORMALIZE_WHITESPACE" doc:name="validate_xml" doc:id="152d3db6-18d7-4994-93a2-4f28c332edf2" expected="#[MunitTools::getResourceAsString('examples/Inventory_Status_IFD.xml')]" actual="#[payload]" />
+			<logger level="INFO" doc:name="Logger" doc:id="bd3811cd-f6d0-480f-b4bc-b553b92c13af" message="#[vars.count]"/>
+		</munit:validation>
+	</munit:test> -->
+
+</mule>
