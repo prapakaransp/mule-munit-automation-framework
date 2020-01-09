@@ -2,7 +2,7 @@
 The munit framework automates coding steps for unit testing and validate all the business scenarios based on the input and output files which includes positive scenarios and Error scenarios.
 
 The below digram illustrates architecture of the unit test framework.
-![image](https://user-images.githubusercontent.com/6832114/69595505-5bb84b80-0fc5-11ea-8bcc-fe94c1746905.png)
+![image](https://user-images.githubusercontent.com/6832114/72101822-3b312000-32eb-11ea-856a-056f8a72a378.png)
 
 
 ## project steps
